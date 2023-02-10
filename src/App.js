@@ -1,73 +1,136 @@
 import React from 'react';
 import Cart from './Cart';
 import Navbar from './Navbar';
+import db from './db';
 
 class App extends React.Component {
 
   constructor () {
     super();
     this.state = {
-      products: [
-        {
-          price: 99,
-          title: 'Watch',
-          qty: 1,
-          img: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80',
-          id: 1
-        },
-        {
-          price: 999,
-          title: 'Mobile Phone',
-          qty: 10,
-          img: 'https://images.unsplash.com/photo-1520923642038-b4259acecbd7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1306&q=80',
-          id: 2
-        },
-        {
-          price: 999,
-          title: 'Laptop',
-          qty: 4,
-          img: 'https://images.unsplash.com/photo-1504707748692-419802cf939d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1330&q=80',
-          id: 3
-        }
-      ]
+      products: []
     }
-    // this.increaseQuantity = this.increaseQuantity.bind(this);
-    // this.testing();
   }
+  componentDidMount(){
+    // db
+    // .collection('Products')
+    // .get()
+    // .then((snapshot)=>{
+    //   const products  = snapshot.docs.map((doc)=>{
+    //     const data = doc.data();
+    //     data['id'] = doc.id;
+    //     return data;
+    //   });
+
+    //   console.log(products);
+    //   this.setState({
+    //     products
+    //   });
+    // }).catch((err)=>{
+    //   console.log(err);
+    // })
+
+    //Below code will be like listener and automatically change the data on dom
+
+     db
+    .collection('Products')
+    .onSnapshot((snapshot)=>{
+        const products  = snapshot.docs.map((doc)=>{
+          const data = doc.data();
+          data['id'] = doc.id;
+          return data;
+        });
+  
+        console.log(products);
+        this.setState({
+          products
+        });
+      })
+
+  }
+
+  addProduct=()=>{
+    db
+    .collection('Products')
+    .add({
+      img:'',
+      price:900,
+      qty:6,
+      title:'Washing Machine'
+    })
+  }
+
+
   handleIncreaseQuantity = (product) => {
     console.log('Heyy please inc the qty of ', product);
-    const { products } = this.state;
-    const index = products.indexOf(product);
+    // products[index].qty += 1;
 
-    products[index].qty += 1;
+    // this.setState({
+    //   products
+    // })
 
-    this.setState({
-      products
+    const docRef = db.collection('Products').doc(product.id);
+
+    console.log(docRef);
+    docRef.
+    update({
+      qty:product.qty+1
+    })
+    .then(()=>{
+      console.log('Updated Successfully');
+    })
+    .catch((err)=>{
+      console.log(err);
     })
   }
   handleDecreaseQuantity = (product) => {
     console.log('Heyy please inc the qty of ', product);
-    const { products } = this.state;
-    const index = products.indexOf(product);
+    // const { products } = this.state;
+    // const index = products.indexOf(product);
 
-    if (products[index].qty === 0) {
-      return;
-    }
+    // if (products[index].qty === 0) {
+    //   return;
+    // }
 
-    products[index].qty -= 1;
+    // products[index].qty -= 1;
 
-    this.setState({
-      products
+    // this.setState({
+    //   products
+    // })
+
+    const docRef = db.collection('Products').doc(product.id);
+
+    console.log(docRef);
+    docRef.
+    update({
+      qty:product.qty-1
+    })
+    .then(()=>{
+      console.log('Updated Successfully');
+    })
+    .catch((err)=>{
+      console.log(err);
     })
   }
   handleDeleteProduct = (id) => {
-    const { products } = this.state;
+    // const { products } = this.state;
 
-    const items = products.filter((item) => item.id !== id); // [{}]
+    // const items = products.filter((item) => item.id !== id); // [{}]
 
-    this.setState({
-      products: items
+    // this.setState({
+    //   products: items
+    // })
+
+    const docRef = db.collection('Products').doc(id);
+    docRef
+    .delete()
+    .then(()=>{
+      console.log('Deleted Successfully');
     })
+    .catch((err)=>{
+      console.log(err);
+    })
+
   }
 
   getCartCount = () => {
@@ -98,6 +161,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Navbar count={this.getCartCount()} />
+        <button onClick={this.addProduct} style={{margin:20}}>Add Product</button>
         <Cart
           products={products}
           onIncreaseQuantity={this.handleIncreaseQuantity}
